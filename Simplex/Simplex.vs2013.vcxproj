@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{24BBB24A-5180-4CAD-B5A1-0BE7AA79A80B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Simplexvs2013</RootNamespace>
+    <RootNamespace>Simplex</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
