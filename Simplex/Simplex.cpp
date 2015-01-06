@@ -10,8 +10,15 @@
 using namespace std;
 
 // Simplex lab with C++
+
+void Simplex(vector<vector<double>>& tableau, vector<int>& basic_columns);
+
 int main()
 {
+    // Step 1: Initialize tableau with sample data from book 
+    // Combinatorial Optimization - Algorithms and Complexity
+    // Chapter 2
+
     int number_of_constraints = 3;
     int number_of_variables = 8;
     vector<vector<double>> tableau;
@@ -21,12 +28,6 @@ int main()
         tableau[m].resize(number_of_variables + 1);
     }
 
-    // Step 1: Initialize tableau with sample data from book 
-    // Combinatorial Optimization - Algorithms and Complexity
-    // Chapter 2
-
-    // TODO: Compute the first line from input
-    // TODO: Refactor so that we can run phase 2
     string line1 = " -8   0   0   0 -10  -8  -3  -1  -1";
     string line2 = "  1   1   0   0   3   2   1   0   0";
     string line3 = "  3   0   1   0   5   1   1   1   0";
@@ -49,6 +50,14 @@ int main()
     basic_columns.push_back(2);
     basic_columns.push_back(3);
 
+    Simplex(tableau, basic_columns);
+    return 0;
+}
+
+void Simplex(vector<vector<double>>& tableau, vector<int>& basic_columns)
+{
+    int number_of_constraints = tableau.size() - 1;
+    int number_of_variables = tableau[0].size() - 1;
     while (true) /* optimal will break */
     {
         // Step 3: Initialize the column_to_enter_basis (bland's algorithm - first negative cost column enter basis)
@@ -61,7 +70,7 @@ int main()
                 break;
             }
         }
-        
+
         if (column_to_enter_basis == -1)
         {
             // we reached optimal
@@ -122,13 +131,11 @@ int main()
             }
             cout << endl;
         }
-        for (int i =0 ; i < number_of_constraints; i++)
+        for (int i = 0; i < number_of_constraints; i++)
         {
             cout << basic_columns[i] << "\t";
         }
         cout << endl;
         cout << endl;
     }
-
-    return 0;
 }
