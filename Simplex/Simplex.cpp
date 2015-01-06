@@ -66,7 +66,7 @@ int main()
 
 void linear_programming(vector<double> objective_vector, vector<vector<double>> constraint_matrix, vector<double> constraint_vector)
 {
-    // 1st phase linear programming to find a feasible basis 
+    // Step 1: Initialize tableau (for phase 1 to determine feasible basis)
     int number_of_constraints = constraint_matrix.size();
     int number_of_variables = objective_vector.size() + number_of_constraints;
     vector<vector<double>> tableau;
@@ -105,9 +105,16 @@ void linear_programming(vector<double> objective_vector, vector<vector<double>> 
         }
     }
 
-    // TODO: Compute relative cost
+    // Step 2: Initialize relative costs
+    for (int m = 1; m < number_of_constraints + 1; m++)
+    {
+        for (int n = 0; n <= number_of_variables; n++)
+        {
+            tableau[0][n] -= tableau[m][n];
+        }
+    }
 
-    // Step 2: Initialize the set of basic columns
+    // Step 3: Initialize the set of basic columns
     vector<int> basic_columns;
     basic_columns.push_back(1);
     basic_columns.push_back(2);
