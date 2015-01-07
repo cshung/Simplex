@@ -31,3 +31,26 @@ The linear program is unbounded
   2   3   0   1   4
 
 The linear program is infeasible
+
+// Useless variable
+
+2 4
+1 0 0 0
+1 0 1 0 2
+0 1 0 1 2
+
+-0.00 is the optimal objective value
+
+0.00 2.00 2.00 0.00
+
+// A highly degenerate linear program from a weighted directed graph shortest path problem.
+
+  3   5
+  1   2   2   3   1
+  1   1   0   0   0   1
+  0   0   0  -1  -1  -1
+ -1   0   1   1   0   0
+
+3.00 is the optimal objective value
+
+0.00 1.00 0.00 0.00 1.00
