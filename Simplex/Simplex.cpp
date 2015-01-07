@@ -37,11 +37,13 @@ int main()
     string endline = "\r\n";
     istringstream iss(line1 + endline + line2 + endline + line3 + endline + line4 + endline + line5);
 
+    istream& is = cin;
+
     int number_of_constraints;
     int number_of_variables;
 
-    iss >> number_of_constraints;
-    iss >> number_of_variables;
+    is >> number_of_constraints;
+    is >> number_of_variables;
 
     vector<double> objective_vector;
     vector<vector<double>> constraint_matrix;
@@ -57,16 +59,16 @@ int main()
 
     for (int n = 0; n < number_of_variables; n++)
     {
-        iss >> objective_vector[n];
+        is >> objective_vector[n];
     }
 
     for (int m = 0; m < number_of_constraints; m++)
     {
         for (int n = 0; n < number_of_variables; n++)
         {
-            iss >> constraint_matrix[m][n];
+            is >> constraint_matrix[m][n];
         }
-        iss >> constraint_vector[m];
+        is >> constraint_vector[m];
     }
 
     linear_programming(objective_vector, constraint_matrix, constraint_vector);
@@ -143,8 +145,39 @@ void linear_programming(vector<double> objective_vector, vector<vector<double>> 
         basic_columns.push_back(m + number_of_original_variables);
     }
 
+    cout << "Phase 1: " << endl << endl;
     optimize_tableau(tableau, basic_columns, /* phase = */1);
-    optimize_tableau(tableau, basic_columns, /* phase = */2);
+
+    cout << -tableau[number_of_constraints + 1][0] << " is the objective value for phase 1" << endl << endl;
+
+    if (abs(tableau[number_of_constraints + 1][0]) < 1e-6)
+    {
+
+        cout << "Phase 2: " << endl << endl;
+        optimize_tableau(tableau, basic_columns, /* phase = */2);
+
+        cout << -tableau[0][0] << " is the optimal objective value" << endl << endl;
+
+        // TODO: Think more about outputting the final result
+        vector<double> solution;
+        solution.resize(number_of_original_variables);
+        for (int n = 0; n < number_of_original_variables; n++)
+        {
+            solution[n] = 0;
+        }
+        for (unsigned int i = 0; i < basic_columns.size(); i++)
+        {
+            solution[basic_columns[i] - 1] = tableau[i][0];
+        }
+        for (int n = 0; n < number_of_original_variables; n++)
+        {
+            cout << solution[n] << " ";
+        }
+    }
+    else
+    {
+        cout << "The linear program is infeasible" << endl;
+    }
 }
 
 void optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_columns, int phase)
