@@ -1,40 +1,33 @@
-========================================================================
-    CONSOLE APPLICATION : Simplex.vs2013 Project Overview
-========================================================================
+  3   5
+  1   1   1   1   1
+  3   2   1   0   0   1
+  5   1   1   1   0   3
+  2   5   1   0   1   4
 
-AppWizard has created this Simplex.vs2013 application for you.
+4.50 is the optimal objective value
 
-This file contains a summary of what you will find in each of the files that
-make up your Simplex.vs2013 application.
+0.00 0.50 0.00 2.50 1.50
 
+  2   4
+ -1  -2  0   0
+ -1   1  1   0   2
+ -2   1  0   1   1
 
-Simplex.vs2013.vcxproj
-    This is the main project file for VC++ projects generated using an Application Wizard.
-    It contains information about the version of Visual C++ that generated the file, and
-    information about the platforms, configurations, and project features selected with the
-    Application Wizard.
+The linear program is unbounded
 
-Simplex.vs2013.vcxproj.filters
-    This is the filters file for VC++ projects generated using an Application Wizard. 
-    It contains information about the association between the files in your project 
-    and the filters. This association is used in the IDE to show grouping of files with
-    similar extensions under a specific node (for e.g. ".cpp" files are associated with the
-    "Source Files" filter).
+  3   5
+ -1  -2   0   0   0
+ -2   1   1   0   0   2
+ -1   2   0   1   0   7
+  1   0   0   0   1   3
 
-Simplex.vs2013.cpp
-    This is the main application source file.
+-13.00 is the optimal objective value
 
-/////////////////////////////////////////////////////////////////////////////
-Other standard files:
+3.00 5.00 3.00 0.00 0.00
 
-StdAfx.h, StdAfx.cpp
-    These files are used to build a precompiled header (PCH) file
-    named Simplex.vs2013.pch and a precompiled types file named StdAfx.obj.
+  2   3
+ -1   0   0   0
+  1   1  -1   0   6
+  2   3   0   1   4
 
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
-
-/////////////////////////////////////////////////////////////////////////////
+The linear program is infeasible

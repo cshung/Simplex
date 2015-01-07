@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#pragma warning(disable : 4996)
 
 #include <iostream>
 #include <sstream>
@@ -7,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <iomanip>
+#include <cassert>
 using namespace std;
 
 // Simplex lab with C++
@@ -15,27 +15,30 @@ using namespace std;
 void linear_programming(vector<double> objective_vector, vector<vector<double>> constraint_matrix, vector<double> constraint_vector);
 
 /* private */
-void optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_columns, int phase);
+bool optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_columns, int phase);
+
+/* private */
+void show_tableau(int number_of_constraints, int number_of_variables, vector<vector<double>>& tableau, vector<int>& basic_columns);
 
 int main()
 {
     // Initialize tableau with sample data from book, sample problem comes from
     // Combinatorial Optimization - Algorithms and Complexity (Chapter 2 - example 2.5)
 
-    /*string line1 = "  3   5                ";
-    string line2 = "  1   1   1   1   1    ";
-    string line3 = "  3   2   1   0   0   1";
-    string line4 = "  5   1   1   1   0   3";
-    string line5 = "  2   5   1   0   1   4";*/
+    // string line1 = "  3   5                ";
+    // string line2 = "  1   1   1   1   1    ";
+    // string line3 = "  3   2   1   0   0   1";
+    // string line4 = "  5   1   1   1   0   3";
+    // string line5 = "  2   5   1   0   1   4";
 
-    string line1 = "  3   5                ";
-    string line2 = "     -1  -2   0   0   0";
-    string line3 = " -2   1   1   0   0   2";
-    string line4 = " -1   1   0   1   0   3";
-    string line5 = "  1   0   0   0   1   3";
+    // string line1 = "  3   5                ";
+    // string line2 = "     -1  -2   0   0   0";
+    // string line3 = " -2   1   1   0   0   2";
+    // string line4 = " -1   1   0   1   0   3";
+    // string line5 = "  1   0   0   0   1   3";
 
-    string endline = "\r\n";
-    istringstream iss(line1 + endline + line2 + endline + line3 + endline + line4 + endline + line5);
+    // string endline = "\r\n";
+    // istringstream iss(line1 + endline + line2 + endline + line3 + endline + line4 + endline + line5);
 
     istream& is = cin;
 
@@ -85,49 +88,49 @@ void linear_programming(vector<double> objective_vector, vector<vector<double>> 
     vector<vector<double>> tableau;
     tableau.resize(number_of_constraints + 2);
     for (int m = 0; m < number_of_constraints + 2; m++)
-    {
-        tableau[m].resize(number_of_variables + 1);
-        for (int n = 0; n <= number_of_variables; n++)
-        {
-            if (m == 0) // original objective row
-            {
-                if (1 <= n && n <= number_of_original_variables)
-                {
-                    tableau[m][n] = objective_vector[n - 1];
-                }
-                else
-                {
-                    tableau[m][n] = 0;
-                }
-            }
-            else if (m == number_of_constraints + 1)
-            {
-                if (n > number_of_original_variables)
-                {
-                    tableau[m][n] = 1;
-                }
-                else
-                {
-                    tableau[m][n] = 0;
-                }
-            }
-            else
-            {
-                if (n == 0)
-                {
-                    tableau[m][n] = constraint_vector[m - 1];
-                }
-                else if (n > number_of_original_variables)
-                {
-                    tableau[m][n] = (m == n - number_of_original_variables) ? 1 : 0;
-                }
-                else
-                {
-                    tableau[m][n] = constraint_matrix[m - 1][n - 1];
-                }
-            }
-        }
-    }
+    {                                                                                        
+        tableau[m].resize(number_of_variables + 1);                                          
+        for (int n = 0; n <= number_of_variables; n++)                                       
+        {                                                                                    
+            if (m == 0)                                                                      // original objective row
+            {                                                                                
+                if (1 <= n && n <= number_of_original_variables)                             
+                {                                                                            
+                    tableau[m][n] = objective_vector[n - 1];                                 // original objective vector values
+                }                                                                            
+                else                                                                         
+                {                                                                            
+                    tableau[m][n] = 0;                                                       // original objective value does not depend on artificial variables
+                }                                                                            
+            }                                                                                
+            else if (m == number_of_constraints + 1)                                         // artificial objective row
+            {                                                                                
+                if (n > number_of_original_variables)                                        
+                {                                                                            
+                    tableau[m][n] = 1;                                                       // each artificial variables contributes 1 to the artificial objective values
+                }                                                                            
+                else                                                                         
+                {                                                                            
+                    tableau[m][n] = 0;                                                       // artificial objective value does not depend on original variables
+                }                                                                            
+            }                                                                                
+            else                                                                             
+            {                                                                                
+                if (n == 0)                                                                  // required value column
+                {                                                                            
+                    tableau[m][n] = constraint_vector[m - 1];                                // required values
+                }                                                                            
+                else if (n > number_of_original_variables)                                   // artificial variables
+                {                                                                            
+                    tableau[m][n] = (m == n - number_of_original_variables) ? 1 : 0;         // each artificial values binds to an unique constraint.
+                }                                                                            
+                else                                                                         
+                {                                                                            
+                    tableau[m][n] = constraint_matrix[m - 1][n - 1];                         // required constraint coefficients
+                }                                                                            
+            }                                                                                
+        }                                                                                    
+    }                                                                                        
 
     // Step 2: Initialize relative costs
     for (int m = 1; m <= number_of_constraints; m++)
@@ -145,33 +148,44 @@ void linear_programming(vector<double> objective_vector, vector<vector<double>> 
         basic_columns.push_back(m + number_of_original_variables);
     }
 
+    // Step 4: First phase optimization to find a basic feasible solution
     cout << "Phase 1: " << endl << endl;
-    optimize_tableau(tableau, basic_columns, /* phase = */1);
+    bool first_phase_optimization_bounded = optimize_tableau(tableau, basic_columns, /* phase = */1);
+
+    assert(first_phase_optimization_bounded == true); /* The first phase optimization cannot possibly be unbounded. */
 
     cout << -tableau[number_of_constraints + 1][0] << " is the objective value for phase 1" << endl << endl;
 
     if (abs(tableau[number_of_constraints + 1][0]) < 1e-6)
     {
-
+        // Step 5: Second phase optimization to find a optimal basic feasible solution
         cout << "Phase 2: " << endl << endl;
-        optimize_tableau(tableau, basic_columns, /* phase = */2);
+        bool second_phase_optimization_bounded = optimize_tableau(tableau, basic_columns, /* phase = */2);
+        if (second_phase_optimization_bounded)
+        {
+            cout << -tableau[0][0] << " is the optimal objective value" << endl << endl;
+            vector<double> solution;
+            solution.resize(number_of_original_variables);
+            for (int n = 0; n < number_of_original_variables; n++)
+            {
+                solution[n] = 0;
+            }
 
-        cout << -tableau[0][0] << " is the optimal objective value" << endl << endl;
+            for (unsigned int i = 0; i < basic_columns.size(); i++)
+            {
+                solution[basic_columns[i] - 1] = tableau[i + 1][0];
+            }
 
-        // TODO: Think more about outputting the final result
-        vector<double> solution;
-        solution.resize(number_of_original_variables);
-        for (int n = 0; n < number_of_original_variables; n++)
-        {
-            solution[n] = 0;
+            for (int n = 0; n < number_of_original_variables; n++)
+            {
+                cout << solution[n] << " ";
+            }
+
+            cout << endl;
         }
-        for (unsigned int i = 0; i < basic_columns.size(); i++)
+        else
         {
-            solution[basic_columns[i] - 1] = tableau[i][0];
-        }
-        for (int n = 0; n < number_of_original_variables; n++)
-        {
-            cout << solution[n] << " ";
+            cout << "The linear program is unbounded" << endl;
         }
     }
     else
@@ -180,7 +194,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double>> 
     }
 }
 
-void optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_columns, int phase)
+bool optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_columns, int phase)
 {
     int number_of_constraints = tableau.size() - 2;
     int number_of_variables = tableau[0].size() - 1;
@@ -189,10 +203,14 @@ void optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_column
         number_of_variables -= number_of_constraints;
     }
 
+    show_tableau(number_of_constraints, number_of_variables, tableau, basic_columns);
+
     int objective_row = phase == 1 ? number_of_constraints + 1 : 0;
+
     while (true) /* optimal will break */
     {
-        // Step 3: Initialize the column_to_enter_basis (bland's algorithm - first negative cost column enter basis)
+        // Step 1: Find the column_to_enter_basis 
+        // (bland's algorithm - first negative cost column enter basis)
         int column_to_enter_basis = -1;
         for (int c = 1; c <= number_of_variables; c++)
         {
@@ -206,68 +224,80 @@ void optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_column
         if (column_to_enter_basis == -1)
         {
             // we reached optimal
-            break;
+            return true;
         }
 
-        // Step 4: Find out which row to enter basis
-        bool first = true;
+        // Step 2: Find the row_to_leave_basis
+        bool theta_uninitialized = true;
         double theta = 0;
-        int row = -1;
+        int row_to_leave_basis = -1;
         for (int m = 1; m <= number_of_constraints; m++)
         {
             if (tableau[m][column_to_enter_basis] > 0)
             {
-                double theta_candidate = /* basic variable value */tableau[m][0] / tableau[m][column_to_enter_basis];
-                if (first)
+                double theta_candidate = /* basic variable value = */ tableau[m][0] / tableau[m][column_to_enter_basis];
+                if (theta_uninitialized)
                 {
-                    row = m;
+                    row_to_leave_basis = m;
                     theta = theta_candidate;
-                    first = false;
+                    theta_uninitialized = false;
                 }
                 else if (theta > theta_candidate)
                 {
-                    row = m;
+                    // (bland's algorithm - first column reach maximal enter basis)
+                    row_to_leave_basis = m;
                     theta = theta_candidate;
                 }
             }
         }
 
-        basic_columns[row - 1] = column_to_enter_basis;
-
-        // Step 5: Scale the row to enter basis to have coefficient 1
-        double factor = tableau[row][column_to_enter_basis];
-        for (int n = 0; n < (number_of_variables + 1); n++)
+        if (row_to_leave_basis == -1)
         {
-            tableau[row][n] = tableau[row][n] / factor;
+            // No row can leave basis - the linear program is unbounded
+            return false;
         }
 
-        // Step 6: Zero out the other rows
+        basic_columns[row_to_leave_basis - 1] = column_to_enter_basis;
+
+        // Step 3: Scale the row to enter basis to have coefficient 1
+        double factor = tableau[row_to_leave_basis][column_to_enter_basis];
+        for (int n = 0; n < (number_of_variables + 1); n++)
+        {
+            tableau[row_to_leave_basis][n] = tableau[row_to_leave_basis][n] / factor;
+        }
+
+        // Step 4: Scale the row to enter basis to have coefficient 1
         for (int other_row = 0; other_row < (number_of_constraints + 2); other_row++)
         {
-            if (other_row != row)
+            if (other_row != row_to_leave_basis)
             {
                 factor = tableau[other_row][column_to_enter_basis];
                 for (int n = 0; n < (number_of_variables + 1); n++)
                 {
-                    tableau[other_row][n] = tableau[other_row][n] - factor * tableau[row][n];
+                    tableau[other_row][n] = tableau[other_row][n] - factor * tableau[row_to_leave_basis][n];
                 }
             }
         }
 
-        // Show the tableau
-        for (int m = 0; m < (number_of_constraints + 2); m++)
+        show_tableau(number_of_constraints, number_of_variables, tableau, basic_columns);
+    }
+}
+
+void show_tableau(int number_of_constraints, int number_of_variables, vector<vector<double>>& tableau, vector<int>& basic_columns)
+{
+    // Show the tableau
+    for (int m = 0; m < (number_of_constraints + 2); m++)
+    {
+        for (int n = 0; n < (number_of_variables + 1); n++)
         {
-            for (int n = 0; n < (number_of_variables + 1); n++)
-            {
-                cout << setprecision(2) << fixed << tableau[m][n] << "\t";
-            }
-            cout << endl;
+            cout << setprecision(2) << fixed << tableau[m][n] << "\t";
         }
-        for (int i = 0; i < number_of_constraints; i++)
-        {
-            cout << basic_columns[i] << "\t";
-        }
-        cout << endl;
         cout << endl;
     }
+    for (int i = 0; i < number_of_constraints; i++)
+    {
+        cout << basic_columns[i] << "\t";
+    }
+    cout << endl;
+    cout << endl;
 }
