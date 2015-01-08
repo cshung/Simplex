@@ -54,3 +54,9 @@ The linear program is infeasible
 3.00 is the optimal objective value
 
 0.00 1.00 0.00 0.00 1.00
+
+// Found a bug - we need to make sure we 'drive out' the artificial variables
+
+1 2
+ 1 1 
+-1 0 0
