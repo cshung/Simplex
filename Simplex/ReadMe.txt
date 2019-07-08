@@ -60,3 +60,9 @@ The linear program is infeasible
 1 2
  1 1 
 -1 0 0
+
+This LP corresponds to 
+
+minimize x1 + x2
+subject to -x1 = 0
+x1 >= 0, x2 >= 0

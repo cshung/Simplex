@@ -7,18 +7,22 @@
 #include <map>
 #include <iomanip>
 #include <cassert>
+#include <cmath>
 using namespace std;
 
 // Simplex lab with C++
 
 /* public */
-void linear_programming(vector<double> objective_vector, vector<vector<double>> constraint_matrix, vector<double> constraint_vector);
+void linear_programming(vector<double> objective_vector, vector<vector<double> > constraint_matrix, vector<double> constraint_vector);
 
 /* private */
-bool optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_columns, int phase);
+bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_columns, int phase);
 
 /* private */
-void show_tableau(int number_of_constraints, int number_of_variables, vector<vector<double>>& tableau, vector<int>& basic_columns);
+void show_tableau(int phase, int number_of_constraints, int number_of_variables, vector<vector<double> >& tableau, vector<int>& basic_columns);
+
+/* private */
+void pivot(int phase, int number_of_constraints, int number_of_variables, vector<vector<double> >& tableau, vector<int>& basic_columns, int row_to_leave_basis, int column_to_enter_basis);
 
 int main()
 {
@@ -49,7 +53,7 @@ int main()
     is >> number_of_variables;
 
     vector<double> objective_vector;
-    vector<vector<double>> constraint_matrix;
+    vector<vector<double> > constraint_matrix;
     vector<double> constraint_vector;
     objective_vector.resize(number_of_variables);
     constraint_matrix.resize(number_of_constraints);
@@ -79,13 +83,13 @@ int main()
     return 0;
 }
 
-void linear_programming(vector<double> objective_vector, vector<vector<double>> constraint_matrix, vector<double> constraint_vector)
+void linear_programming(vector<double> objective_vector, vector<vector<double> > constraint_matrix, vector<double> constraint_vector)
 {
     // Step 1: Initialize tableau (for phase 1 to determine feasible basis)
     int number_of_constraints = constraint_matrix.size();
     int number_of_original_variables = objective_vector.size();
     int number_of_variables = number_of_original_variables + number_of_constraints;
-    vector<vector<double>> tableau;
+    vector<vector<double> > tableau;
     tableau.resize(number_of_constraints + 2);
     for (int m = 0; m < number_of_constraints + 2; m++)
     {
@@ -144,7 +148,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double>> 
         }
     }
 
-    // Step 3: Initialize relative costs
+    // Step 3: Initialize relative costs (relative cost is discussed in page 47)
     for (int m = 1; m <= number_of_constraints; m++)
     {
         for (int n = 0; n <= number_of_variables; n++)
@@ -206,7 +210,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double>> 
     }
 }
 
-bool optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_columns, int phase)
+bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_columns, int phase)
 {
     int number_of_constraints = tableau.size() - 2;
     int number_of_variables = tableau[0].size() - 1;
@@ -215,7 +219,7 @@ bool optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_column
         number_of_variables -= number_of_constraints;
     }
 
-    show_tableau(number_of_constraints, number_of_variables, tableau, basic_columns);
+    show_tableau(phase, number_of_constraints, number_of_variables, tableau, basic_columns);
 
     int objective_row = phase == 1 ? number_of_constraints + 1 : 0;
 
@@ -239,12 +243,29 @@ bool optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_column
             {
                 if (abs(tableau[number_of_constraints + 1][0]) < 1e-6)
                 {
-                    // TODO: In phase 1, we need to also make sure all artificial variables are out of the basis, how?
-
-                    // This is what we should make sure
                     for (int m = 0; m < number_of_constraints; m++)
                     {
-                        assert(basic_columns[m] <= number_of_variables - number_of_constraints);
+                        assert(tableau[m + 1][basic_columns[m]] == 1);
+                        if (basic_columns[m] > number_of_variables - number_of_constraints)
+                        {
+                            bool found = false;
+                            for (int n = 1; n <= number_of_variables - number_of_constraints; n++)
+                            {
+                                if (abs(tableau[m + 1][n]) > 1e-6)
+                                {
+                                    pivot(phase, number_of_constraints, number_of_variables, tableau, basic_columns, m + 1, n);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            // TODO: If this assertion fires, we need to remove this constraint.
+                            // 2 1
+                            // 1
+                            // 1 1
+                            // 0 0 
+                            // will hit this
+                            assert(found);
+                        }
                     }
                 }
             }
@@ -282,38 +303,62 @@ bool optimize_tableau(vector<vector<double>>& tableau, vector<int>& basic_column
             return false;
         }
 
-        cout << "Pivoting on row " << row_to_leave_basis << " column " << column_to_enter_basis << "." << endl<< endl;
-
-        basic_columns[row_to_leave_basis - 1] = column_to_enter_basis;
-
-        // Step 3: Scale the row to enter basis to have coefficient 1
-        double factor = tableau[row_to_leave_basis][column_to_enter_basis];
-        for (int n = 0; n < (number_of_variables + 1); n++)
-        {
-            tableau[row_to_leave_basis][n] = tableau[row_to_leave_basis][n] / factor;
-        }
-
-        // Step 4: Zero other rows
-        for (int other_row = 0; other_row < (number_of_constraints + 2); other_row++)
-        {
-            if (other_row != row_to_leave_basis)
-            {
-                factor = tableau[other_row][column_to_enter_basis];
-                for (int n = 0; n < (number_of_variables + 1); n++)
-                {
-                    tableau[other_row][n] = tableau[other_row][n] - factor * tableau[row_to_leave_basis][n];
-                }
-            }
-        }
-
-        show_tableau(number_of_constraints, number_of_variables, tableau, basic_columns);
+        // Step 3: Pivoting on row_to_leave_basis and column_to_enter_basis
+        pivot(phase, number_of_constraints, number_of_variables, tableau, basic_columns, row_to_leave_basis, column_to_enter_basis);
     }
 }
 
-void show_tableau(int number_of_constraints, int number_of_variables, vector<vector<double>>& tableau, vector<int>& basic_columns)
+void pivot(int phase, int number_of_constraints, int number_of_variables, vector<vector<double> >& tableau, vector<int>& basic_columns, int row_to_leave_basis, int column_to_enter_basis)
 {
-    // Show the tableau
-    for (int m = 0; m < (number_of_constraints + 2); m++)
+    cout << "Pivoting on row " << row_to_leave_basis << " column " << column_to_enter_basis << "." << endl<< endl;
+    basic_columns[row_to_leave_basis - 1] = column_to_enter_basis;
+
+    // Step 1: Scale the row to enter basis to have coefficient 1
+    double factor = tableau[row_to_leave_basis][column_to_enter_basis];
+
+    for (int n = 0; n < (number_of_variables + 1); n++)
+    {
+        tableau[row_to_leave_basis][n] = tableau[row_to_leave_basis][n] / factor;
+    }
+
+    // Step 2: Zero other rows
+    for (int other_row = 0; other_row < (number_of_constraints + 2); other_row++)
+    {
+        if (other_row != row_to_leave_basis)
+        {
+            factor = tableau[other_row][column_to_enter_basis];
+            for (int n = 0; n < (number_of_variables + 1); n++)
+            {
+                tableau[other_row][n] = tableau[other_row][n] - factor * tableau[row_to_leave_basis][n];
+            }
+        }
+    }
+
+    show_tableau(phase, number_of_constraints, number_of_variables, tableau, basic_columns);
+}
+
+/**
+ * How to read a tableau:
+ * The first row represents the relative cost
+ * The middle row represents b = Ax, the first column is b, the remaining column is A
+ * The value of b is also the variable values, only the basic variable has non-trivial values
+ * The numbers at the bottom indicates which columns are the basic columns
+ */
+void show_tableau(int phase, int number_of_constraints, int number_of_variables, vector<vector<double> >& tableau, vector<int>& basic_columns)
+{
+    int objective_row = phase == 1 ? number_of_constraints + 1 : 0;
+    for (int n = 0; n < (number_of_variables + 1); n++)
+    {
+        cout << setprecision(2) << fixed << tableau[objective_row][n] << "\t";
+    }
+    cout << endl;
+    for (int n = 0; n < (number_of_variables + 1); n++)
+    {
+        cout << "----\t";
+    }
+    cout << endl;
+
+    for (int m = 1; m <= number_of_constraints; m++)
     {
         for (int n = 0; n < (number_of_variables + 1); n++)
         {
@@ -321,9 +366,22 @@ void show_tableau(int number_of_constraints, int number_of_variables, vector<vec
         }
         cout << endl;
     }
-    for (int i = 0; i < number_of_constraints; i++)
+    for (int n = 0; n < (number_of_variables + 1); n++)
     {
-        cout << basic_columns[i] << "\t";
+        bool found = false;
+        for (int i = 0; i < number_of_constraints; i++)
+        {
+            if (basic_columns[i] == n)
+            {
+                cout << i << "\t";
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            cout << "\t";
+        }
     }
     cout << endl;
     cout << endl;
