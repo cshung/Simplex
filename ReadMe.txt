@@ -1,3 +1,8 @@
+The key reason why we can pivot the objective row and why pivoting the objective row leads to reduced cost is that
+1) We are representing the objective as a linear function of the non-basic variables and so
+2) it is valid to perform row operation on an equation, and also
+3) As a linear equation that describe the objective function, the coefficients are reduced costs!
+
   3   5
   1   1   1   1   1
   3   2   1   0   0   1
