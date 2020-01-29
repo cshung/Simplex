@@ -15,5 +15,5 @@ target_link_libraries(simplex-tests
     libgmock
 )
 
-add_test(NAME testfoo
-         COMMAND testfoo)
+add_test(NAME simplex-tests
+         COMMAND ./simplex-tests)
