@@ -1,11 +1,1 @@
-Debug
-Release
-ipch
-Simplex.vs2012.opensdf
-Simplex.vs2012.sdf
-Simplex.vs2012.v11.suo
-Simplex/Simplex.vs2012.vcxproj.user
-Simplex.vs2013.opensdf
-Simplex.vs2013.sdf
-Simplex.vs2013.v12.suo
-Simplex/Simplex.vs2013.vcxproj.user
+build

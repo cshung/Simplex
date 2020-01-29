@@ -60,14 +60,12 @@ The linear program is infeasible
 
 0.00 1.00 0.00 0.00 1.00
 
-// Found a bug - we need to make sure we 'drive out' the artificial variables
+// We need to make sure we 'drive out' the artificial variables
 
 1 2
  1 1 
 -1 0 0
 
-This LP corresponds to 
+-0.00 is the optimal objective value
 
-minimize x1 + x2
-subject to -x1 = 0
-x1 >= 0, x2 >= 0
+-0.00 0.00 
