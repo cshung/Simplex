@@ -6,13 +6,13 @@ The program assumes the linear program is alreay converted to the standard form 
 
 ```
 min z = c'x
-subject to Ax  = 0
+subject to Ax  = b
        and  x >= 0
 ```
 
-We have `m` constraints and `n` variables, therefore `c` is a `nx1` vector and `A` is a `mxn` matrix.
+We have `m` constraints and `n` variables, therefore `c` is a `nx1` vector, `A` is a `mxn` matrix and `b` is a `mx1` vector.
 
-The input starts with `m` and `n`, then it follows with `n` numbers that is `c` and then follow with `mxn` numbers which is `A`.
+The input starts with `m` and `n`, then it follows with `n` numbers that is `c` and then follow with `mx(n+1)` numbers which is `[A|b]`.
 
 Once the input is given, the program will start solving, showing the immediate tableau and final result.
 

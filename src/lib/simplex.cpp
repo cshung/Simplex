@@ -107,6 +107,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double> >
     // Step 5: First phase optimization to find a basic feasible solution
     cout << "Phase 1: " << endl << endl;
     bool first_phase_optimization_bounded = optimize_tableau(tableau, basic_columns, /* phase = */1);
+    number_of_constraints = tableau.size() - 2;
 
     assert(first_phase_optimization_bounded == true); /* The first phase optimization cannot possibly be unbounded. */
 
@@ -131,6 +132,8 @@ void linear_programming(vector<double> objective_vector, vector<vector<double> >
             {
                 solution[basic_columns[i] - 1] = tableau[i + 1][0];
             }
+
+            cout << "The variable values are:" << endl << endl;
 
             for (int n = 0; n < number_of_original_variables; n++)
             {
@@ -181,14 +184,18 @@ bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_colum
         {
             if (phase == 1)
             {
-                if (abs(tableau[number_of_constraints + 1][0]) < 1e-6)
+                // If the optimal value of the first phase is 0
+                if (abs(tableau[objective_row][0]) < 1e-6)
                 {
+                    // We need to check that all artifical variables are eliminated from the basis
                     for (int m = 0; m < number_of_constraints; m++)
                     {
                         assert(tableau[m + 1][basic_columns[m]] == 1);
                         if (basic_columns[m] > number_of_variables - number_of_constraints)
                         {
+                            // If the artifical variable is still in the basis
                             bool found = false;
+                            // Find any non-zero, non-artifical variable to enter the basis
                             for (int n = 1; n <= number_of_variables - number_of_constraints; n++)
                             {
                                 if (abs(tableau[m + 1][n]) > 1e-6)
@@ -198,13 +205,21 @@ bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_colum
                                     break;
                                 }
                             }
-                            // TODO: If this assertion fires, we need to remove this constraint.
-                            // 2 1
-                            // 1
-                            // 1 1
-                            // 0 0 
-                            // will hit this
-                            assert(found);
+                            if (!found)
+                            {
+                                // In this case, all the non-artifical variable columns are 0, meaning the whole constraint 
+                                // is simply 0 = 0, eliminate this constraint.
+                                tableau.erase(tableau.begin() + (m + 1));
+                                basic_columns.erase(basic_columns.begin() + m);
+                                number_of_constraints--;
+                                number_of_variables--;
+                                for (int row = 0; row < number_of_constraints + 2; row++)
+                                {
+                                    tableau[row].erase(tableau[row].begin() + basic_columns[m]);
+                                }
+                                cout << "Eliminating the redundant constraint #" << (m+1) << endl << endl;
+                                show_tableau(phase, number_of_constraints, number_of_variables, tableau, basic_columns);
+                            }
                         }
                     }
                 }
@@ -323,6 +338,5 @@ void show_tableau(int phase, int number_of_constraints, int number_of_variables,
             cout << "\t";
         }
     }
-    cout << endl;
-    cout << endl;
+    cout << endl << endl;
 }
