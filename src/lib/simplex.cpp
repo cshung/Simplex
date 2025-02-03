@@ -51,7 +51,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double> >
             {
                 if (n > number_of_original_variables)
                 {
-                    tableau[m][n] = 1;                                                       // each artificial variables contributes 1 to the artificial objective values
+                    tableau[m][n] = 1;                                                       // each artificial variable contributes 1 to the artificial objective values
                 }
                 else
                 {
@@ -66,7 +66,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double> >
                 }
                 else if (n > number_of_original_variables)                                   // artificial variables
                 {
-                    tableau[m][n] = (m == n - number_of_original_variables) ? 1 : 0;         // each artificial values binds to an unique constraint.
+                    tableau[m][n] = (m == n - number_of_original_variables) ? 1 : 0;         // each artificial value binds to a unique constraint.
                 }
                 else
                 {
@@ -76,7 +76,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double> >
         }
     }
 
-    // Step 2: Make sure constraint values are positive for first phase
+    // Step 2: Make sure constraint values are positive for the first phase
     for (int m = 1; m <= number_of_constraints; m++)
     {
         if (tableau[m][0] < 0)
@@ -88,7 +88,9 @@ void linear_programming(vector<double> objective_vector, vector<vector<double> >
         }
     }
 
-    // Step 3: Initialize relative costs (relative cost is discussed in page 47)
+    // Step 3: Initialize relative costs
+    // relative cost represents the unit change in the objective function whenever a non-basic variable changes a little bit
+    // it is used to decide the variable to enter the basis
     for (int m = 1; m <= number_of_constraints; m++)
     {
         for (int n = 0; n <= number_of_variables; n++)
@@ -115,7 +117,7 @@ void linear_programming(vector<double> objective_vector, vector<vector<double> >
 
     if (abs(tableau[number_of_constraints + 1][0]) < 1e-6)
     {
-        // Step 6: Second phase optimization to find a optimal basic feasible solution
+        // Step 6: Second phase optimization to find an optimal basic feasible solution
         cout << "Phase 2: " << endl << endl;
         bool second_phase_optimization_bounded = optimize_tableau(tableau, basic_columns, /* phase = */2);
         if (second_phase_optimization_bounded)
@@ -169,7 +171,7 @@ bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_colum
     while (true) /* The loop will break when we reach optimality or conclude the linear program is unbounded */
     {
         // Step 1: Find the column_to_enter_basis
-        // (bland's algorithm - first negative cost column enter basis)
+        // (Bland's algorithm - first negative cost column enters basis)
         int column_to_enter_basis = -1;
         for (int c = 1; c <= number_of_variables; c++)
         {
@@ -187,15 +189,15 @@ bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_colum
                 // If the optimal value of the first phase is 0
                 if (abs(tableau[objective_row][0]) < 1e-6)
                 {
-                    // We need to check that all artifical variables are eliminated from the basis
+                    // We need to check that all artificial variables are eliminated from the basis
                     for (int m = 0; m < number_of_constraints; m++)
                     {
                         assert(tableau[m + 1][basic_columns[m]] == 1);
                         if (basic_columns[m] > number_of_variables - number_of_constraints)
                         {
-                            // If the artifical variable is still in the basis
+                            // If the artificial variable is still in the basis
                             bool found = false;
-                            // Find any non-zero, non-artifical variable to enter the basis
+                            // Find any non-zero, non-artificial variable to enter the basis
                             for (int n = 1; n <= number_of_variables - number_of_constraints; n++)
                             {
                                 if (abs(tableau[m + 1][n]) > 1e-6)
@@ -207,7 +209,7 @@ bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_colum
                             }
                             if (!found)
                             {
-                                // In this case, all the non-artifical variable columns are 0, meaning the whole constraint 
+                                // In this case, all the non-artificial variable columns are 0, meaning the whole constraint 
                                 // is simply 0 = 0, eliminate this constraint.
                                 tableau.erase(tableau.begin() + (m + 1));
                                 basic_columns.erase(basic_columns.begin() + m);
@@ -245,7 +247,7 @@ bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_colum
                 }
                 else if (theta > theta_candidate)
                 {
-                    // (bland's algorithm - first column reach maximal enter basis)
+                    // (Bland's algorithm - first column to reach maximal enters basis)
                     row_to_leave_basis = m;
                     theta = theta_candidate;
                 }
@@ -260,6 +262,8 @@ bool optimize_tableau(vector<vector<double> >& tableau, vector<int>& basic_colum
 
         // Step 3: Pivoting on row_to_leave_basis and column_to_enter_basis
         pivot(phase, number_of_constraints, number_of_variables, tableau, basic_columns, row_to_leave_basis, column_to_enter_basis);
+
+        show_tableau(phase, number_of_constraints, number_of_variables, tableau, basic_columns);
     }
 }
 
@@ -288,16 +292,18 @@ void pivot(int phase, int number_of_constraints, int number_of_variables, vector
             }
         }
     }
-
-    show_tableau(phase, number_of_constraints, number_of_variables, tableau, basic_columns);
 }
 
 /**
  * How to read a tableau:
- * The first row represents the relative cost
+ *
+ * The first row represents the relative cost, the first element is the negative objective, and the rest is how much the objective could change 
+ * if there is a unit change in the corresponding variable while maintaining the equality constraints.
+ *
  * The middle row represents b = Ax, the first column is b, the remaining column is A
  * The value of b is also the variable values, only the basic variable has non-trivial values
- * The numbers at the bottom indicates which columns are the basic columns
+ *
+ * The numbers at the bottom indicate which columns are the basic columns
  */
 void show_tableau(int phase, int number_of_constraints, int number_of_variables, vector<vector<double> >& tableau, vector<int>& basic_columns)
 {
