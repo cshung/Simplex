@@ -1,5 +1,3 @@
-set (CMAKE_CXX_STANDARD 14)
-
 add_executable(simplex-tests main.cpp simplex-tests.cpp)
 
 target_link_libraries(simplex-tests

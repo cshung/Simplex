@@ -94,6 +94,9 @@ Applying the simplex algorithm above, the optimal solution can either be all zer
 
 On the other hand, if the artificial variables cannot be all zero, that means there is no way we can satisfy all the constraints. In that case we can declare the program as infeasible.
 
+# Dual
+By maintaining the dual variables $y$ so that reduced cost row (of the original objective) to be $c - y^TA$, we find $y$ to be the optimal solution to the dual problem in case the program is feasible and bounded. Note that the dual variables only work on the transformed $A$. To get the dual variables for the original problem, we need to transform the dual variables back to the original space. The code explained how this is done.
+
 # Gotchas
 In case a reduced cost is zero, it does not make sense to choose it to enter the basis since that won't change objective value, but we must choose it to enter the basis if that could be used to drive the artifical variable away in the first phase. The goal of the first phase is to drive those variables out, so even if we reach 0, we still need to make sure all artifical variables are 0.
 
